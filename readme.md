@@ -67,6 +67,14 @@ Note: Don't call this function before the `ready` event is fired.
 
   The name of file. Defaults to `window-state.json`. This is usefull if you want to support multiple windows. Simply create multiple ```windowStateKeeper``` instances with different filenames.
 
+`store` - *Object*
+
+  Optionally provide a store as defined by the `electron-store` package, which will be used instead of `file`.
+
+`storeKey` - *String*
+
+  The key to use in the store. Defaults to `windowState`.
+
 `maximize` - *Boolean*
 
   Should we automatically maximize the window, if it was last closed

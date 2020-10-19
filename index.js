@@ -13,6 +13,7 @@ module.exports = function (options) {
   let stateChangeTimer;
   const eventHandlingDelay = 100;
   const config = Object.assign({
+    storeKey: 'windowState',
     file: 'window-state.json',
     path: app.getPath('userData'),
     maximize: true,
@@ -106,8 +107,12 @@ module.exports = function (options) {
 
     // Save state
     try {
-      mkdirp.sync(path.dirname(fullStoreFileName));
-      jsonfile.writeFileSync(fullStoreFileName, state);
+      if (config.store) {
+        config.store.set(config.storeKey, state);
+      } else {
+        mkdirp.sync(path.dirname(fullStoreFileName));
+        jsonfile.writeFileSync(fullStoreFileName, state);
+      }
     } catch (err) {
       // Don't care
     }
@@ -156,7 +161,11 @@ module.exports = function (options) {
 
   // Load previous state
   try {
-    state = jsonfile.readFileSync(fullStoreFileName);
+    if (config.store) {
+      state = config.store.get(config.storeKey);
+    } else {
+      state = jsonfile.readFileSync(fullStoreFileName);
+    }
   } catch (err) {
     // Don't care
   }
