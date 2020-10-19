@@ -34,15 +34,12 @@ module.exports = function (options) {
   }
 
   function resetStateToDefault() {
-    const displayBounds = screen.getPrimaryDisplay().bounds;
-
     // Reset state to default values on the primary display
     state = {
       width: config.defaultWidth || 800,
       height: config.defaultHeight || 600,
       x: 0,
-      y: 0,
-      displayBounds
+      y: 0
     };
   }
 
@@ -74,7 +71,7 @@ module.exports = function (options) {
       return;
     }
 
-    if (hasBounds() && state.displayBounds) {
+    if (hasBounds()) {
       ensureWindowVisibleOnSomeDisplay();
     }
   }
@@ -95,7 +92,6 @@ module.exports = function (options) {
       }
       state.isMaximized = win.isMaximized();
       state.isFullScreen = win.isFullScreen();
-      state.displayBounds = screen.getDisplayMatching(winBounds).bounds;
     } catch (err) {}
   }
 
@@ -184,7 +180,6 @@ module.exports = function (options) {
     get y() { return state.y; },
     get width() { return state.width; },
     get height() { return state.height; },
-    get displayBounds() { return state.displayBounds; },
     get isMaximized() { return state.isMaximized; },
     get isFullScreen() { return state.isFullScreen; },
     saveState,
