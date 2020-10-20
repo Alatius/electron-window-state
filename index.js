@@ -43,23 +43,45 @@ module.exports = function (options) {
     };
   }
 
-  function windowWithinBounds(bounds) {
-    return (
-      state.x >= bounds.x &&
-      state.y >= bounds.y &&
-      state.x + state.width <= bounds.x + bounds.width &&
-      state.y + state.height <= bounds.y + bounds.height
-    );
+  function moveWithinBounds(bounds) {
+    state.width = Math.min(state.width, bounds.width);
+    if (state.x < bounds.x) {
+      state.x = bounds.x;
+    } else if (state.x + state.width > bounds.x + bounds.width) {
+      state.x = bounds.x + bounds.width - state.width;
+    }
+
+    state.height = Math.min(state.height, bounds.height);
+    if (state.y < bounds.y) {
+      state.y = bounds.y;
+    } else if (state.y + state.height > bounds.y + bounds.height) {
+      state.y = bounds.y + bounds.height - state.height;
+    }
+  }
+
+  function partOfWindowWithinBounds(bounds) {
+    const visibleWidth = Math.max(0, Math.min(state.x + state.width, bounds.x + bounds.width) - Math.max(state.x, bounds.x));
+    const visibleHeight = Math.max(0, Math.min(state.y + state.height, bounds.y + bounds.height) - Math.max(state.y, bounds.y));
+    return (visibleWidth * visibleHeight) / (state.width * state.height);
   }
 
   function ensureWindowVisibleOnSomeDisplay() {
-    const visible = screen.getAllDisplays().some(display => {
-      return windowWithinBounds(display.bounds);
+    let bestBounds = null;
+    let bestVisibility = 0;
+    screen.getAllDisplays().forEach(display => {
+      const visibility = partOfWindowWithinBounds(display.bounds);
+      if (visibility > bestVisibility) {
+        bestVisibility = visibility;
+        bestBounds = display.bounds;
+      }
     });
 
-    if (!visible) {
-      // Window is partially or fully not visible now.
-      // Reset it to safe defaults.
+    if (bestBounds) {
+      if (bestVisibility < 1) {
+        moveWithinBounds(bestBounds);
+      }
+    } else {
+      // Window is completely invisible now. Reset it to safe defaults.
       return resetStateToDefault();
     }
   }
