@@ -33,6 +33,23 @@ module.exports = function (options) {
       Number.isInteger(state.height) && state.height > 0;
   }
 
+  function getBounds() {
+    if (!hasBounds()) return null;
+    return {
+      x: state.x,
+      y: state.y,
+      width: state.width,
+      height: state.height
+    };
+  }
+
+  function isCompletelyOutsideBounds(bounds) {
+    return (state.x + state.width < bounds.x ||
+            state.x > bounds.x + bounds.width ||
+            state.y + state.height < bounds.y ||
+            state.y > bounds.y + bounds.height);
+  }
+
   function resetStateToDefault() {
     // Reset state to default values on the primary display
     state = {
@@ -59,30 +76,12 @@ module.exports = function (options) {
     }
   }
 
-  function partOfWindowWithinBounds(bounds) {
-    const visibleWidth = Math.max(0, Math.min(state.x + state.width, bounds.x + bounds.width) - Math.max(state.x, bounds.x));
-    const visibleHeight = Math.max(0, Math.min(state.y + state.height, bounds.y + bounds.height) - Math.max(state.y, bounds.y));
-    return (visibleWidth * visibleHeight) / (state.width * state.height);
-  }
-
   function ensureWindowVisibleOnSomeDisplay() {
-    let bestBounds = null;
-    let bestVisibility = 0;
-    screen.getAllDisplays().forEach(display => {
-      const visibility = partOfWindowWithinBounds(display.bounds);
-      if (visibility > bestVisibility) {
-        bestVisibility = visibility;
-        bestBounds = display.bounds;
-      }
-    });
-
-    if (bestBounds) {
-      if (bestVisibility < 1) {
-        moveWithinBounds(bestBounds);
-      }
+    const workArea = screen.getDisplayMatching(getBounds()).workArea;
+    if (isCompletelyOutsideBounds(workArea)) {
+      resetStateToDefault();
     } else {
-      // Window is completely invisible now. Reset it to safe defaults.
-      return resetStateToDefault();
+      moveWithinBounds(workArea);
     }
   }
 
